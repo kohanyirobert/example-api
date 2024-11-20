@@ -1,0 +1,20 @@
+{
+  "name": "backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "dotenvx run --env-file=.env.local --env-file=.env -- nodemon --watch index.js --watch .env.local index.js",
+    "start": "dotenvx run --env-file=.env.local --env-file=.env -- node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "pg-connection-string": "^2.7.0",
+    "pg-promise": "^11.10.2"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^1.24.2",
+    "nodemon": "^3.1.7"
+  }
+}
