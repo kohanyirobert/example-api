@@ -2,13 +2,21 @@ import os from 'node:os'
 import express from 'express'
 import pgPromise from 'pg-promise'
 import pgConnectionString from 'pg-connection-string'
+import { exit } from 'node:process'
 
-console.log('HOST:', process.env.HOST)
-console.log('PORT:', process.env.PORT)
+
+for (const key of ['HOST', 'PORT', 'PG_URL']) {
+  if (process.env[key]) {
+    console.log(`${key}: ${process.env[key]}`)
+  } else {
+    console.error(`${key}: ${process.env[key]}, must be set`)
+    exit(-1)
+  }
+}
 
 const pgp = pgPromise()
 const config = pgConnectionString.parse(process.env.PG_URL)
-console.log('PG_URL', process.env.PG_URL, config)
+console.log('Config:', config)
 const db = pgp(config)
 
 console.log('Hostname:', os.hostname())
