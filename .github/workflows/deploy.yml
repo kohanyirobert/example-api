@@ -7,7 +7,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  REPOSITORY: ${{ github.repository }}
+  TAG: ghcr.io/${{ github.repository }}
 
 jobs:
   build-and-push-image:
@@ -32,18 +33,34 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        id: push
+      - name: Build and push container image (latest)
+        id: push-latest
         uses: docker/build-push-action@v5.3.0
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.package-version.outputs.current-version }}
-
+          tags: ${{ env.TAG }}
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
+          subject-name: ${{ env.TAG }}
+          subject-digest: ${{ steps.push-latest.outputs.digest }}
           push-to-registry: true
+
+      - name: Check if tag exists
+        uses: tyriis/docker-image-tag-exists@v2.1.0
+        id: check-tag
+        with:
+          registry: ${{ env.REGISTRY }}
+          repository: ${{ env.REPOSITORY }}
+          tag: ${{ steps.package-version.outputs.current-version }}
+
+      - name: Build and push container image (versioned)
+        if: ${{ steps.check-tag.outputs.tag == 'not-found' }}
+        id: push-versioned
+        uses: docker/build-push-action@v5.3.0
+        with:
+          context: .
+          push: true
+          tags: ${{ env.TAG }}:${{ steps.package-version.outputs.current-version }}
