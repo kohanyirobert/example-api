@@ -57,7 +57,7 @@ jobs:
           tag: ${{ steps.package-version.outputs.current-version }}
 
       - name: Build and push container image (versioned)
-        if: ${{ steps.check-tag.outputs.tag == 'not-found' }}
+        if: ${{ steps.check-tag.outputs.tag == 'not found' }}
         id: push-versioned
         uses: docker/build-push-action@v5.3.0
         with:
