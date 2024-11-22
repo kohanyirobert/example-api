@@ -1,11 +1,9 @@
-import os from 'node:os'
 import express from 'express'
 import pgPromise from 'pg-promise'
 import pgConnectionString from 'pg-connection-string'
 import { exit } from 'node:process'
 
-
-for (const key of ['HOST', 'PORT', 'PG_URL']) {
+for (const key of ['HOST', 'PORT', 'PG_URL', 'EC2_HOSTNAME']) {
   if (process.env[key]) {
     console.log(`${key}: ${process.env[key]}`)
   } else {
@@ -19,20 +17,15 @@ const config = pgConnectionString.parse(process.env.PG_URL)
 console.log('Config:', config)
 const db = pgp(config)
 
-console.log('Hostname:', os.hostname())
-
-const networkInterfaces = os.networkInterfaces()
-for (const interfaceName in networkInterfaces) {
-  const interfaces = networkInterfaces[interfaceName]
-  for (const iface of interfaces) {
-    if (iface.family === 'IPv4' && !iface.internal) {
-      console.log(`IPv4: ${iface.address}`)
-    }
-  }
-}
-
 const app = express()
 app.use(express.json())
+
+app.use((req, res, next) => {
+  if (process.env.EC2_HOSTNAME) {
+    res.setHeader('X-EC2-Hostname', process.env.EC2_HOSTNAME)
+  }
+  next()
+})
 
 app.get('/api/cars', async (req, res) => {
   try {
